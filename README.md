@@ -2,7 +2,7 @@
 
 # LND Dashboard
 
-This is a dashboard for interacting and inspecting your `lnd` node.
+This is a dashboard for interacting with and inspecting your `lnd` node.
 
 ## Getting started
 
