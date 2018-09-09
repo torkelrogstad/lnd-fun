@@ -1,0 +1,191 @@
+﻿<% applocals.header='Dashboard'%>
+<% applocals.header_small='Control panel'%>
+
+<section class="content">
+
+    <script src="dist/js/clipboard.min.js"></script>
+
+    <script>
+        var clipboard = new Clipboard('.btn');
+
+        clipboard.on('success', function (e) {
+            $('#' + e.trigger.id).html('Copied');
+            setTimeout(function () {
+                $('#' + e.trigger.id).html('Copy');
+            }, 5000);
+            e.clearSelection();
+        });
+
+        clipboard.on('error', function (e) {
+            $('#' + e.trigger.id).html('Failed');
+            setTimeout(function () {
+                $('#' + e.trigger.id).html('Copy');
+            }, 5000);
+        });
+    </script>
+
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            <!-- small box -->
+            <div class="small-box bg-aqua">
+                <div class="inner">
+                    <input id="input_list_invoices" type="hidden" value="0">
+                    <input id="input_pending_invoices" type="hidden" value="0">
+                    <h3 id="h3_invoices_box">0 <sup style="font-size: 20px">of 0</sup></h3>
+                    
+                    <p>Paid Invoices</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-bag"></i>
+                </div>
+                <a href="paidinvoices" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-xs-6">
+            <!-- small box -->
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <input id="input_active_channels" type="hidden" value="0">
+                    <input id="input_pending_channels" type="hidden" value="0">
+                    <h3 id="h3_channels_box">0 <sup style="font-size: 20px">of 0</sup></h3>
+
+                    <p>Active Channels</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-pie-graph"></i>
+                </div>
+                <a href="activechannels" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-xs-6">
+            <!-- small box -->
+            <div class="small-box bg-yellow">
+                <div class="inner">
+                    <h3 id="h3_connected_peers">0</h3>
+
+                    <p>Connected Peers</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-network"></i>
+                </div>
+                <a href="peers" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-xs-6">
+            <!-- small box -->
+            <div class="small-box bg-red">
+                <div class="inner">
+                    <h3 id="span_list_payments">0</h3>
+
+                    <p>Outgoing Payments</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-paper-airplane"></i>
+                </div>
+                <a href="channel_transactions" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <!-- ./col -->
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-green"><i class="ion ion-flash"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text">In Channels</span>
+                    <%
+                        var channelbalance =0;
+                        if(viewdata && viewdata.channelBalance && viewdata.channelBalance.status== 'success')
+                        {
+                            channelbalance = Number(viewdata.channelBalance.data.balance);
+                        }
+                    %>
+                    <span class="info-box-number" id="span_channel_balance_index">0</span>
+                    <span class="info-box-text">SAT</span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-aqua"><i class="ion ion-social-bitcoin"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text">On Chain</span>
+                    <%
+                        var walletbalance =0;
+                        if(viewdata && viewdata.walletBalance && viewdata.walletBalance.status== 'success')
+                        {
+                            walletbalance = Number(viewdata.walletBalance.data.confirmed_balance);
+                        }
+                    %>
+                    <span class="info-box-number" id="span_confirmed_balance">0</span>
+                    <span class="info-box-text">SAT</span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box">
+                <span class="info-box-icon bg-gray"><i class="ion ion-social-bitcoin"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text">Pending On Chain</span>
+                    <%
+                        var unconfirmed_balance =0;
+                        if(viewdata && viewdata.walletBalance && viewdata.walletBalance.status== 'success')
+                        {
+                            unconfirmed_balance = Number(viewdata.walletBalance.data.unconfirmed_balance);
+                        }
+                    %>
+                    <span class="info-box-number" id="span_unconfirmed_balance">0</span>
+                    <span class="info-box-text">SAT</span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+        </div>
+
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-9">
+            <div class="input-group">
+                <span class="input-group-addon">Node Pubkey </span>
+                <input class="form-control" readonly="readonly" placeholder="Node Pubkey ..." type="text" id="input_node_pubkey">
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-info btn-flat" id="btn_node_pubkey" data-clipboard-target="#input_node_pubkey">Copy</button>
+                </span>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">Node Address</span>
+                <input class="form-control" readonly="readonly" placeholder="Node Address ..." type="text" id="input_node_address">
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-info btn-flat" id="btn_node_address" data-clipboard-target="#input_node_address">Copy</button>
+                </span>
+            </div>            
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-9">
+            <h4>This is a panel for webmasters to manage their full lightning node. Download <a href="lightning.zip">Source Code</a></h4>
+            <h3>Special thanks to <a href="http://bitcoin.org" target="_blank">Bitcoin.org</a> developers and <a href="https://github.com/lightningnetwork/lnd" target="_blank">LND</a> developers !</h3>
+        </div>
+    </div>
+
+</section>
+
+

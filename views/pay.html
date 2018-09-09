@@ -1,0 +1,96 @@
+﻿<% applocals.header='Pay'%>
+<% applocals.header_small='Make A Payment'%>
+
+<section class="content">
+    <div class="row">
+        <div class="col-md-6">
+            <!-- Horizontal Form -->
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Payment Form</h3>
+                </div>
+                <!-- /.box-header -->
+                <!-- form start -->
+                <div class="form-horizontal">
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="payment_request" class="col-sm-2 control-label">Payment Request</label>
+
+                            <div class="col-sm-10">
+                                <textarea class="form-control" rows="5" placeholder="Enter ..." id="payment_request"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount" class="col-sm-2 control-label">Amount</label>
+
+                            <div class="col-sm-10">
+                                <div class="input-group">
+                                    <input class="form-control" type="text" readonly="readonly" id="amount" placeholder="Amount ...">
+                                    <span class="input-group-addon">SAT</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="memo" class="col-sm-2 control-label">Memo</label>
+
+                            <div class="col-sm-10">
+                                <input class="form-control" readonly="readonly" placeholder="Memo ..." type="text" id="memo">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-default" onclick="decode_request($('#payment_request').val());">Decode</button>
+                        <button type="submit" class="btn btn-default" onclick="reset_form();">Reset</button>
+                        <button type="submit" class="btn btn-info pull-right" onclick="send_payment($('#payment_request').val());">Send Payment</button>
+                    </div>
+                    <!-- /.box-footer -->
+                </div>
+            </div>
+            <!-- /.box -->
+           
+        </div>
+    </div>
+</section>
+
+<script>
+    function reset_form() {
+        $('#amount').val('');
+        $('#memo').val('');
+        $('#payment_request').val('');
+        return false;
+    }
+
+    function decode_request(payment_request) {
+        notify_handler('info', 'Wait , Decoding ...');
+        $.post("/pay/decode_request",
+            "payment_request=" + payment_request,
+            function (htmlResult) {
+                if (htmlResult.status == 'fail') {
+                    $('#amount').val('');
+                    $('#memo').val('');
+                    notify_handler('error',htmlResult.data.error_message);
+                } else {
+                    $('#amount').val(htmlResult.data.num_satoshis);
+                    $('#memo').val(htmlResult.data.description);
+                    notify_handler('success', 'decoded !');
+                }
+            });
+        return false;
+    }
+
+    function send_payment(payment_request) {
+        notify_handler('info', 'Wait , sending payment ...');
+        $.post("/pay",
+            "payment_request=" + payment_request,
+            function (htmlResult) {
+                if (htmlResult.status == 'fail') {
+                    notify_handler('error', htmlResult.data.error_message);
+                } else {
+                    notify_handler('success', 'Payment has been send. payment_preimage_str: ' + htmlResult.data.payment_preimage_str);
+                }
+            });
+        return false;
+    }    
+
+</script>

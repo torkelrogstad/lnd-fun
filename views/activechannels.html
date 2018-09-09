@@ -1,0 +1,172 @@
+﻿<% applocals.header='Your Channels'%>
+<% applocals.header_small='Channels are like tubes of money used to send money through the network.'%>
+
+<section class="content">
+    <div class="row">
+        <% if(viewdata.listChannels.status =='success') { %>
+        <% viewdata.listChannels.data.channels.forEach(function (channel) { %>
+        <%
+        var channel_color ='';
+        var channel_status ='';
+        var channel_icon ='';
+        if(channel.active) {
+        channel_color='bg-green';
+        channel_status = 'ONLINE';
+        channel_icon='fa-thumbs-o-up';
+        } else {
+        channel_color='bg-aqua';
+        channel_status = 'OFFLINE';
+        channel_icon = 'fa-thumbs-o-down';
+        }
+
+        var local_percent =0;
+        var remote_percent =0;
+        var capacity = Number(channel.local_balance) + Number(channel.remote_balance);
+        local_percent = ((Number(channel.local_balance) * 100) / Number(capacity)).toFixed(2);
+        remote_percent = ((Number(channel.remote_balance) * 100) / Number(capacity)).toFixed(2);
+
+        %>
+
+        <div class="col-md-3 col-sm-6 col-xs-12" style="min-width:50%;">
+            <div class="info-box <%= channel_color %>">
+                <span class="info-box-icon"><i class="fa <%= channel_icon %>" title="<%= channel_status %>"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text" style="text-align:right">
+                        CID: <%= channel.chan_id %>
+                        <button type="button" class="btn btn-box-tool" data-widget="remove" style="padding:0px;" onclick="ask_for_Close('<%= channel.channel_point %>','<%= channel.chan_id %>' , '<%= channel.active %>')"><i class="fa fa-times"></i></button>
+                    </span>
+                    <span class="info-box-number">My Balance: <%= Number(channel.local_balance).toLocaleString('en') %> SAT <span style="font-size:12px;">(<%= local_percent %> %)</span> </span>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width: <%= local_percent %>%"></div>
+                    </div>
+                    <span class="info-box-number" style="text-align:right;font-size:12px;">
+                        Available to Receive: <%= Number(channel.remote_balance).toLocaleString('en') %> SAT <span style="font-size:12px;">(<%= remote_percent %> %)</span>
+                    </span>
+                </div>
+                
+            </div>            
+        </div>
+
+        
+        <% }); %>
+
+        <% if(viewdata.listChannels.data.channels.length==0) { %>
+        <h3>You have no active channels.</h3>
+        <% } %>
+
+        <% } %>
+
+
+        <style>
+            #modalbox {
+                display: none; /* Hidden by default */
+                position: fixed; /* Stay in place */
+                z-index: 10000000; /* Sit on top */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            }
+
+
+            #confirmBox {
+                display: none;
+                background-color: #eee;
+                border-radius: 5px;
+                border: 1px solid #aaa;
+                position: fixed;
+                width: 300px;
+                left: 50%;
+                top: 10%;
+                margin-left: -150px;
+                padding: 6px 8px 8px;
+                box-sizing: border-box;
+                text-align: center;
+            }
+
+                #confirmBox .button {
+                    background-color: #ccc;
+                    display: inline-block;
+                    border-radius: 3px;
+                    border: 1px solid #aaa;
+                    padding: 2px;
+                    text-align: center;
+                    width: 80px;
+                    cursor: pointer;
+                }
+
+                    #confirmBox .button:hover {
+                        background-color: #ddd;
+                    }
+
+                #confirmBox .message {
+                    text-align: left;
+                    margin-bottom: 8px;
+                }
+        </style>
+
+        <div id="modalbox">
+            <div id="confirmBox">
+                <div class="message"></div>
+                <span class="button yes">Yes</span>
+                <span class="button force" style="width:100px;">Yes, Force it!</span>
+                <span class="button no">No</span>
+            </div>
+        </div>
+
+        <script>
+
+            function doConfirm(msg, yesFn, forceFn, noFn) {
+                var confirmBox = $("#confirmBox");
+                var modalbox = $("#modalbox");
+                confirmBox.find(".message").text(msg);
+                confirmBox.find(".yes,.no,.force").unbind().click(function () {
+                    confirmBox.hide();
+                    modalbox.hide();
+                });
+                confirmBox.find(".yes").click(yesFn);
+                confirmBox.find(".force").click(forceFn);
+                confirmBox.find(".no").click(noFn);
+                modalbox.show();
+                confirmBox.show();
+            }
+
+            function ask_for_Close(channel_point, cid,isOnline) {
+                //e.preventDefault();
+                if (isOnline == 'true') {
+                    $("#confirmBox").find(".yes").show();                    
+                } else {
+                    $("#confirmBox").find(".yes").hide();                    
+                }
+                doConfirm("Are you sure you want to close this channel [" + cid + "] ? It may take a while to get your funds back.", function yes() {
+                    closeChannel(channel_point, cid, false);
+                }, function force() {
+                    closeChannel(channel_point, cid, true);
+                }, function no() {
+                    // do nothing
+                });
+            }
+
+            function closeChannel(channel_point, cid, force) {
+                notify_handler('info', 'Wait , ' + (force ? 'force' : '') + ' closing channel [' + cid + '] ...');
+                $.post("/activechannels/closechannel",
+                    "channel_point=" + channel_point + "&force=" + force,
+                    function (htmlResult) {
+                        if (htmlResult.status == 'fail') {
+                            notify_handler('error', htmlResult.data.error_message);
+                        } else {
+                            notify_handler('success', 'closing_txid: ' +  htmlResult.data.closing_txid);
+                        }
+                    });
+                return false;
+
+            }
+
+        </script>
+    </div>
+</section>
